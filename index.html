@@ -60,31 +60,6 @@
         #flagModeButton.active {
             background-color: #FF5722;
         }
-
-        /* Game Over Screen Styles */
-        #gameOverScreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            font-size: 30px;
-            z-index: 10;
-        }
-
-        #gameOverScreen button {
-            background-color: #FF5722;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 18px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -93,14 +68,6 @@
     <div>
         <button id="reset">Restart Game</button>
         <button id="flagModeButton">Flag Mode: Off</button>
-    </div>
-
-    <!-- Game Over Screen -->
-    <div id="gameOverScreen">
-        <div>
-            <p>GAME OVER!</p>
-            <button onclick="createBoard()">Restart Game</button>
-        </div>
     </div>
 
     <script>
@@ -115,10 +82,6 @@
         const boardElement = document.getElementById('board');
         const resetButton = document.getElementById('reset');
         const flagModeButton = document.getElementById('flagModeButton');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-
-        // Initialize the board when the page loads
-        createBoard();
 
         // Create the game board (grid)
         function createBoard() {
@@ -133,9 +96,6 @@
             // Reset flag button to "Off"
             flagModeButton.textContent = 'Flag Mode: Off';
             flagModeButton.classList.remove('active');
-
-            // Hide the game over screen
-            gameOverScreen.style.display = 'none';
 
             // Generate cells and add them to the board
             for (let y = 0; y < gridSize; y++) {
@@ -219,7 +179,7 @@
 
             if (cell.isMine) {
                 gameOver = true;
-                showGameOverScreen();
+                alert('Game Over!');
                 return;
             }
 
@@ -230,7 +190,7 @@
 
             if (revealedCells === gridSize * gridSize - mineCount) {
                 gameOver = true;
-                showGameOverScreen();
+                alert('You Win!');
             }
         }
 
@@ -274,4 +234,35 @@
                     const newX = x + dx;
                     if (newY >= 0 && newY < gridSize && newX >= 0 && newX < gridSize) {
                         const neighbor = board[newY][newX];
-                        const neighborElement = boardElement.children
+                        const neighborElement = boardElement.children[newY * gridSize + newX];
+                        if (!neighbor.isRevealed && !neighbor.isFlagged) {
+                            revealCell(neighbor, neighborElement);
+                            if (neighbor.adjacentMines === 0) {
+                                revealNeighboringCells(neighbor);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Toggle Flag Mode On/Off
+        flagModeButton.addEventListener('click', () => {
+            flagMode = !flagMode;
+            if (flagMode) {
+                flagModeButton.textContent = 'Flag Mode: On';
+                flagModeButton.classList.add('active');
+            } else {
+                flagModeButton.textContent = 'Flag Mode: Off';
+                flagModeButton.classList.remove('active');
+            }
+        });
+
+        // Reset the game
+        resetButton.addEventListener('click', createBoard);
+
+        // Initialize the game
+        createBoard();
+    </script>
+</body>
+</html>
