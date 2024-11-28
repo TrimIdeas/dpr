@@ -227,7 +227,7 @@
 
             if (revealedCells === gridSize * gridSize - mineCount) {
                 gameOver = true;
-                showGameOverScreen('win');
+                showGameOverScreen();
             }
         }
 
@@ -271,4 +271,17 @@
                     const newX = x + dx;
                     if (newY >= 0 && newY < gridSize && newX >= 0 && newX < gridSize) {
                         const neighbor = board[newY][newX];
-                       
+                        const neighborElement = boardElement.children[newY * gridSize + newX];
+                        if (!neighbor.isRevealed && !neighbor.isFlagged) {
+                            revealCell(neighbor, neighborElement);
+                            if (neighbor.adjacentMines === 0) {
+                                revealNeighboringCells(neighbor);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Show the "GAME OVER!" screen
+        function showGame
