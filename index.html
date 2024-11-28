@@ -274,9 +274,4 @@
                     const newX = x + dx;
                     if (newY >= 0 && newY < gridSize && newX >= 0 && newX < gridSize) {
                         const neighbor = board[newY][newX];
-                        const neighborElement = boardElement.children[newY * gridSize + newX];
-                        if (!neighbor.isRevealed && !neighbor.isMine) {
-                            revealCell(neighbor, neighborElement);
-                            if (neighbor.adjacentMines === 0) {
-                                revealNeighboringCells(neighbor);
-                            }
+                        const neighborElement = boardElement.children
