@@ -1,118 +1,420 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minesweeper Game</title>
     <title>Snake Game</title>
-    <style>
-        body {
+<style>
+body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #f1f1f1;
         }
-        canvas {
-            border: 1px solid black;
+
+        h1 {
+            font-size: 36px;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(10, 40px); /* 10x10 grid */
+            grid-gap: 5px;
+            justify-content: center;
+            margin: 20px;
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: lightgray;
+            border: 1px solid #999;
+            margin: 0;
+            padding: 0;
+display: flex;
+            align-items: center;
+justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .cell.revealed {
+            background-color: #ddd;
+            cursor: default;
+        }
+
+        .cell.flagged {
+            background-color: orange;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+}
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
             margin-top: 20px;
-            background-color: green; /* Set canvas background color to green */
+        canvas {
+            border: 1px solid #fff;
+}
+
+        #flagModeButton {
+            background-color: #4CAF50;
+        #startScreen, #gameOverScreen {
+            position: absolute;
+            text-align: center;
+color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+}
+
+        #flagModeButton.active {
+            background-color: #FF5722;
+        #startScreen p, #gameOverScreen p {
+            margin: 10px;
+}
+
+        /* Game Over Screen Styles */
+#gameOverScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            z-index: 10;
         }
-    </style>
+
+        #gameOverScreen button {
+            background-color: #FF5722;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+}
+</style>
 </head>
 <body>
-    <h1>Snake Game</h1>
+    <h1>Minesweeper</h1>
+    <div id="board"></div>
+    <div>
+        <button id="reset">Restart Game</button>
+        <button id="flagModeButton">Flag Mode: Off</button>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <script>
+    <div id="startScreen">
+        <p>Snake Game</p>
+        <p>Press Enter to Start</p>
+</div>
+
+    <!-- Game Over Screen -->
+<div id="gameOverScreen">
+        <div>
+            <p>GAME OVER!</p>
+            <button onclick="createBoard()">Restart Game</button>
+        </div>
+        <p>Game Over!</p>
+        <p>Score: <span id="finalScore">0</span></p>
+        <p>Press Enter to Restart</p>
+</div>
+
+<script>
+        const gridSize = 10; // 10x10 grid
+        const mineCount = 20; // Number of mines
+        let board = [];
+        let gameOver = false;
+        let revealedCells = 0;
+        let flagsLeft = mineCount; // Track remaining flags
+        let flagMode = false; // Flag mode on or off
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        const box = 20; // size of each box
-        let score = 0;
-        let snake = [{x: 9 * box, y: 10 * box}]; // snake starts in the middle
-        let food = {x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box};
+        const scale = 20;
+        const rows = canvas.height / scale;
+        const columns = canvas.width / scale;
+
+        let snake;
         let direction;
+        let food;
+        let score;
         let gameInterval;
+        let speed;
+        let isGamePaused = false;
 
-        // Set snake speed (slightly faster now)
-        let speed = 150; // milliseconds (slightly faster than before)
+        const startScreen = document.getElementById("startScreen");
+        const gameOverScreen = document.getElementById("gameOverScreen");
+        const finalScoreElement = document.getElementById("finalScore");
 
-        // Draw everything on the canvas
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before drawing
+        // Key event listener to start the game or pause it
+        document.addEventListener("keydown", keyDownHandler);
 
-            // Draw the snake
-            for (let i = 0; i < snake.length; i++) {
-                ctx.fillStyle = i === 0 ? "green" : "lightgreen"; // head is green, body is light green
-                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+        function keyDownHandler(event) {
+            if (event.keyCode === 13 && startScreen.style.display !== "none") {
+                startGame();
+            } else if (event.keyCode === 13 && gameOverScreen.style.display !== "none") {
+                startGame();
+            } else if (event.keyCode === 32) {
+                togglePause();
+            } else if (event.keyCode === 37 && direction !== "RIGHT") {
+                direction = "LEFT";
+            } else if (event.keyCode === 38 && direction !== "DOWN") {
+                direction = "UP";
+            } else if (event.keyCode === 39 && direction !== "LEFT") {
+                direction = "RIGHT";
+            } else if (event.keyCode === 40 && direction !== "UP") {
+                direction = "DOWN";
             }
+        }
 
+        function startGame() {
+            // Reset the game variables
+            snake = [{ x: 9 * scale, y: 9 * scale }];
+            direction = "RIGHT";
+            food = generateFood();
+            score = 0;
+            speed = 100;
+            isGamePaused = false;
+
+        const boardElement = document.getElementById('board');
+        const resetButton = document.getElementById('reset');
+        const flagModeButton = document.getElementById('flagModeButton');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+            startScreen.style.display = "none";
+            gameOverScreen.style.display = "none";
+            finalScoreElement.textContent = score;
+
+        // Initialize the board when the page loads
+        createBoard();
+            gameInterval = setInterval(update, speed);
+        }
+
+        // Create the game board (grid)
+        function createBoard() {
+            // Clear the board
+            board = [];
+            revealedCells = 0;
+            gameOver = false;
+            flagsLeft = mineCount;
+            flagMode = false; // Reset flag mode
+            boardElement.innerHTML = '';
+        function update() {
+            if (isGamePaused) return;
+
+            // Reset flag button to "Off"
+            flagModeButton.textContent = 'Flag Mode: Off';
+            flagModeButton.classList.remove('active');
+            const head = { ...snake[0] };
+
+            // Hide the game over screen
+            gameOverScreen.style.display = 'none';
+            if (direction === "UP") head.y -= scale;
+            if (direction === "DOWN") head.y += scale;
+            if (direction === "LEFT") head.x -= scale;
+            if (direction === "RIGHT") head.x += scale;
+
+            // Generate cells and add them to the board
+            for (let y = 0; y < gridSize; y++) {
+                const row = [];
+                for (let x = 0; x < gridSize; x++) {
+                    const cell = {
+                        x,
+                        y,
+                        isMine: false,
+                        isRevealed: false,
+                        isFlagged: false,
+                        adjacentMines: 0,
+                    };
+                    row.push(cell);
+                    const cellElement = document.createElement('div');
+                    cellElement.classList.add('cell');
+                    cellElement.dataset.x = x;
+                    cellElement.dataset.y = y;
+                    cellElement.addEventListener('click', handleCellClick);
+                    boardElement.appendChild(cellElement);
+                }
+                board.push(row);
+            // Check if the snake eats the food
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                food = generateFood();
+                // Increase speed as the snake grows
+                if (speed > 50) speed -= 5;
+                clearInterval(gameInterval);
+                gameInterval = setInterval(update, speed);
+            } else {
+                snake.pop(); // Remove the last piece of the snake
+}
+
+            // Place mines
+            placeMines();
+            // Calculate adjacent mines for each cell
+            calculateAdjacentMines();
+        }
+            snake.unshift(head); // Add the new head to the snake
+
+        // Place mines randomly
+        function placeMines() {
+            let placedMines = 0;
+            while (placedMines < mineCount) {
+                const x = Math.floor(Math.random() * gridSize);
+                const y = Math.floor(Math.random() * gridSize);
+                if (!board[y][x].isMine) {
+                    board[y][x].isMine = true;
+                    placedMines++;
+                }
+            // Check if the snake hits the wall or itself
+            if (
+                head.x < 0 || head.x >= canvas.width ||
+                head.y < 0 || head.y >= canvas.height ||
+                collisionWithSelf(head)
+            ) {
+                gameOver();
+}
+
+            draw();
+}
+
+        // Calculate adjacent mines for each cell
+        function calculateAdjacentMines() {
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    if (board[y][x].isMine) continue;
+                    let adjacentMines = 0;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            const newY = y + dy;
+                            const newX = x + dx;
+                            if (newY >= 0 && newY < gridSize && newX >= 0 && newX < gridSize && board[newY][newX].isMine) {
+                                adjacentMines++;
+                            }
+                        }
+                    }
+                    board[y][x].adjacentMines = adjacentMines;
+        function collisionWithSelf(head) {
+            for (let i = 1; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) {
+                    return true;
+}
+}
+            return false;
+}
+
+        // Handle left click (reveal cell)
+        function handleCellClick(event) {
+            if (gameOver || event.target.classList.contains('flagged')) return;
+
+            const x = parseInt(event.target.dataset.x);
+            const y = parseInt(event.target.dataset.y);
+            const cell = board[y][x];
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+
+            if (cell.isRevealed) return;
             // Draw the food
             ctx.fillStyle = "red";
-            ctx.fillRect(food.x, food.y, box, box);
+            ctx.fillRect(food.x, food.y, scale, scale);
 
-            // Display the score
-            ctx.fillStyle = "black";
+            if (flagMode) {
+                // If flag mode is active, place a flag
+                toggleFlag(cell, event.target);
+                return;
+            // Draw the snake
+            ctx.fillStyle = "green";
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillRect(snake[i].x, snake[i].y, scale, scale);
+}
+
+            revealCell(cell, event.target);
+
+            if (cell.isMine) {
+                gameOver = true;
+                showGameOverScreen();
+                return;
+            }
+
+            if (cell.adjacentMines === 0) {
+                // Reveal neighboring cells if no adjacent mines
+                revealNeighboringCells(cell);
+            }
+
+            if (revealedCells === gridSize * gridSize - mineCount) {
+                gameOver = true;
+                showGameOverScreen();
+            }
+            // Draw the score
+            ctx.fillStyle = "white";
             ctx.font = "20px Arial";
-            ctx.fillText("Score: " + score, box, box);
+            ctx.fillText("Score: " + score, 10, 30);
+}
 
-            // Move the snake
-            let snakeX = snake[0].x;
-            let snakeY = snake[0].y;
+        // Toggle flag when flag mode is on
+        function toggleFlag(cell, cellElement) {
+            if (cell.isRevealed) return;
+        function generateFood() {
+            return {
+                x: Math.floor(Math.random() * rows) * scale,
+                y: Math.floor(Math.random() * columns) * scale
+            };
+        }
 
-            if (direction === "left") snakeX -= box;
-            if (direction === "right") snakeX += box;
-            if (direction === "up") snakeY -= box;
-            if (direction === "down") snakeY += box;
-
-            // If the snake eats food
-            if (snakeX === food.x && snakeY === food.y) {
-                score++;
-                food = {x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box};
+            if (cell.isFlagged) {
+                cell.isFlagged = false;
+                flagsLeft++;
+                cellElement.classList.remove('flagged');
+            } else if (flagsLeft > 0) {
+                cell.isFlagged = true;
+                flagsLeft--;
+                cellElement.classList.add('flagged');
+        function togglePause() {
+            if (isGamePaused) {
+                isGamePaused = false;
+                gameInterval = setInterval(update, speed);
             } else {
-                snake.pop(); // remove the last piece of the snake's body
-            }
-
-            // Add new head to the snake
-            const newHead = {x: snakeX, y: snakeY};
-
-            // Game Over conditions
-            if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
+                isGamePaused = true;
                 clearInterval(gameInterval);
-                alert("Game Over!");
+}
+
+            // Update the UI to show how many flags are left
+            document.title = `Flags Left: ${flagsLeft}`;
+}
+
+        // Reveal a cell and update the UI
+        function revealCell(cell, cellElement) {
+            if (cell.isRevealed) return;
+
+            cell.isRevealed = true;
+            revealedCells++;
+            cellElement.classList.add('revealed');
+            
+            if (cell.adjacentMines > 0) {
+                cellElement.textContent = cell.adjacentMines;
             }
+        function gameOver() {
+            clearInterval(gameInterval);
+            gameOverScreen.style.display = "block";
+            finalScoreElement.textContent = score;
+}
 
-            snake.unshift(newHead); // add new head to the snake
-        }
+        // Reveal neighboring cells when a cell with 0 adjacent mines is clicked
+        function revealNeighboringCells(cell) {
+            const { x, y } = cell;
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    const newY = y + dy;
+                    const newX = x + dx;
+                    if (newY >= 0 && newY < gridSize && newX >= 0 && newX < gridSize) {
+                        const neighbor = board[newY][newX];
+                        const neighborElement = boardElement.children
+        // Initial game setup
+        startScreen.style.display = "block";
 
-        // Collision detection function (to check if the snake hits itself)
-        function collision(head, snakeArray) {
-            for (let i = 0; i < snakeArray.length; i++) {
-                if (head.x === snakeArray[i].x && head.y === snakeArray[i].y) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // Control the snake's movement
-        document.addEventListener("keydown", directionControl);
-
-        function directionControl(event) {
-            if (event.keyCode === 37 && direction !== "right") {
-                direction = "left";
-            } else if (event.keyCode === 38 && direction !== "down") {
-                direction = "up";
-            } else if (event.keyCode === 39 && direction !== "left") {
-                direction = "right";
-            } else if (event.keyCode === 40 && direction !== "up") {
-                direction = "down";
-            }
-        }
-
-        // Start the game loop with faster speed
-        function startGame() {
-            gameInterval = setInterval(draw, speed); // Snake moves every 150 milliseconds (faster than before)
-        }
-
-        startGame(); // start the game when the page loads
     </script>
 </body>
 </html>
