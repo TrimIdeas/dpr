@@ -8,10 +8,12 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            background-color: #f1f1f1;
         }
         canvas {
             border: 1px solid black;
             margin-top: 20px;
+            background-color: green; /* Set canvas background color to green */
         }
     </style>
 </head>
@@ -29,12 +31,12 @@
         let direction;
         let gameInterval;
 
-        // Set initial snake speed (slower speed here)
-        let speed = 200; // milliseconds
+        // Set snake speed (slightly faster now)
+        let speed = 150; // milliseconds (slightly faster than before)
 
         // Draw everything on the canvas
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before drawing
 
             // Draw the snake
             for (let i = 0; i < snake.length; i++) {
@@ -105,9 +107,9 @@
             }
         }
 
-        // Start the game loop with slower speed
+        // Start the game loop with faster speed
         function startGame() {
-            gameInterval = setInterval(draw, speed); // Draw every 200 milliseconds (slower)
+            gameInterval = setInterval(draw, speed); // Snake moves every 150 milliseconds (faster than before)
         }
 
         startGame(); // start the game when the page loads
