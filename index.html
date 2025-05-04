@@ -113,5 +113,20 @@
      <div id="sfch525773duu94de65bl7ed73zhn1dzapr"></div>
 <script type="text/javascript" src="https://counter6.optistats.ovh/private/counter.js?c=h525773duu94de65bl7ed73zhn1dzapr&down=async" async></script>
 <br><a href="https://www.freecounterstat.com">html code for hit counter</a><noscript><a href="https://www.freecounterstat.com" title="html code for hit counter"><img src="https://counter6.optistats.ovh/private/freecounterstat.php?c=h525773duu94de65bl7ed73zhn1dzapr" border="0" title="html code for hit counter" alt="html code for hit counter"></a></noscript>
+     <form method="post" action="comments.php">
+  <textarea name="comment" placeholder="Write your comment..." required></textarea><br>
+  <input type="submit" value="Post Comment">
+</form>
+
+<h3>Comments:</h3>
+<?php
+  if (file_exists("comments.txt")) {
+    $comments = file("comments.txt");
+    foreach ($comments as $c) {
+      echo "<p>" . htmlspecialchars($c) . "</p><hr>";
+    }
+  }
+?>
+
 </body>
      
