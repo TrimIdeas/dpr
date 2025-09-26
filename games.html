@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head>
 <style>
@@ -22,18 +21,29 @@
         justify-items: center;
     }
 
-    /* Smaller preview size */
-    .game-frame {
+    .game-container {
+        position: relative;
         width: 400px;
         height: 300px;
-        border: 2px solid black;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: transform 0.2s;
     }
 
-    .game-frame:hover {
-        transform: scale(1.05);
+    /* Smaller preview size */
+    .game-frame {
+        width: 100%;
+        height: 100%;
+        border: 2px solid black;
+        border-radius: 10px;
+    }
+
+    /* Invisible overlay button */
+    .fullscreen-btn {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        background: transparent;
+        border: none;
     }
 </style>
 </head>
@@ -41,20 +51,45 @@
     <h1>Games</h1>
 
     <div class="games-grid">
-        <iframe class="game-frame" src="https://scratch.mit.edu/projects/1103961748/embed" allowfullscreen></iframe>
-        <iframe class="game-frame" src="https://scratch.mit.edu/projects/1104256088/embed" allowfullscreen></iframe>
-        <iframe class="game-frame" src="https://scratch.mit.edu/projects/1112527956/embed" allowfullscreen></iframe>
-        <iframe class="game-frame" src="https://scratch.mit.edu/projects/1104055943/embed" allowfullscreen></iframe>
-        <iframe class="game-frame" src="https://scratch.mit.edu/projects/881633442/embed" allowfullscreen></iframe>
-        <iframe class="game-frame" src="https://scratch.mit.edu/projects/1113929725/embed" allowfullscreen></iframe>
-        <iframe class="game-frame" src="https://scratch.mit.edu/projects/1134275871/embed" allowfullscreen></iframe>
-        <iframe class="game-frame" src="https://scratch.mit.edu/projects/1169735607/embed" allowfullscreen></iframe>
+        <div class="game-container">
+            <iframe class="game-frame" src="https://scratch.mit.edu/projects/1103961748/embed" allowfullscreen></iframe>
+            <button class="fullscreen-btn"></button>
+        </div>
+        <div class="game-container">
+            <iframe class="game-frame" src="https://scratch.mit.edu/projects/1104256088/embed" allowfullscreen></iframe>
+            <button class="fullscreen-btn"></button>
+        </div>
+        <div class="game-container">
+            <iframe class="game-frame" src="https://scratch.mit.edu/projects/1112527956/embed" allowfullscreen></iframe>
+            <button class="fullscreen-btn"></button>
+        </div>
+        <div class="game-container">
+            <iframe class="game-frame" src="https://scratch.mit.edu/projects/1104055943/embed" allowfullscreen></iframe>
+            <button class="fullscreen-btn"></button>
+        </div>
+        <div class="game-container">
+            <iframe class="game-frame" src="https://scratch.mit.edu/projects/881633442/embed" allowfullscreen></iframe>
+            <button class="fullscreen-btn"></button>
+        </div>
+        <div class="game-container">
+            <iframe class="game-frame" src="https://scratch.mit.edu/projects/1113929725/embed" allowfullscreen></iframe>
+            <button class="fullscreen-btn"></button>
+        </div>
+        <div class="game-container">
+            <iframe class="game-frame" src="https://scratch.mit.edu/projects/1134275871/embed" allowfullscreen></iframe>
+            <button class="fullscreen-btn"></button>
+        </div>
+        <div class="game-container">
+            <iframe class="game-frame" src="https://scratch.mit.edu/projects/1169735607/embed" allowfullscreen></iframe>
+            <button class="fullscreen-btn"></button>
+        </div>
     </div>
 
     <script>
-        // Make iframes go fullscreen when clicked
-        document.querySelectorAll(".game-frame").forEach(iframe => {
-            iframe.addEventListener("click", () => {
+        // Find all overlay buttons
+        document.querySelectorAll(".fullscreen-btn").forEach((btn, index) => {
+            btn.addEventListener("click", () => {
+                let iframe = btn.previousElementSibling; // the iframe before the button
                 if (iframe.requestFullscreen) {
                     iframe.requestFullscreen();
                 } else if (iframe.webkitRequestFullscreen) {
