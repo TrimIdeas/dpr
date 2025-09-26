@@ -19,15 +19,21 @@
 
     .game-container {
         position: relative;
-        display: inline-block;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         margin: 20px auto;
         border: 2px solid black;
+        width: 1000px;
+        height: 800px;
+        background: orange; /* keeps same bg when fullscreen */
     }
 
     iframe {
         width: 1000px;
         height: 800px;
         display: block;
+        background: white;
     }
 
     /* Transparent overlay to catch clicks */
@@ -38,7 +44,17 @@
         width: 100%;
         height: 100%;
         cursor: pointer;
-        background: rgba(0,0,0,0); /* fully invisible */
+        background: rgba(0,0,0,0); /* invisible */
+    }
+
+    /* Center the container when fullscreen */
+    .fullscreen-game {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        background: orange;
     }
 </style>
 </head>
@@ -94,19 +110,31 @@
     </div>
 
     <script>
-        // Make any game go fullscreen when clicked
+        // Fullscreen click handler
         document.querySelectorAll(".overlay").forEach(overlay => {
             overlay.addEventListener("click", () => {
                 let container = overlay.parentElement;
+
+                // Add fullscreen centering style
+                container.classList.add("fullscreen-game");
+
                 if (container.requestFullscreen) {
                     container.requestFullscreen();
-                } else if (container.webkitRequestFullscreen) { // Safari
+                } else if (container.webkitRequestFullscreen) {
                     container.webkitRequestFullscreen();
-                } else if (container.msRequestFullscreen) { // IE/Edge
+                } else if (container.msRequestFullscreen) {
                     container.msRequestFullscreen();
                 }
-                // Remove the overlay so you can interact with the game
+
                 overlay.style.display = "none";
+
+                // When fullscreen exits, restore layout
+                document.addEventListener("fullscreenchange", () => {
+                    if (!document.fullscreenElement) {
+                        container.classList.remove("fullscreen-game");
+                        overlay.style.display = "block";
+                    }
+                });
             });
         });
     </script>
