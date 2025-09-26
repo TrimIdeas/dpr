@@ -1,15 +1,30 @@
+<!DOCTYPE html>
 <html>
 <head>
 <style>
     body {
-        text-align: center;
-        background: orange;
         margin: 0;
         font-family: Arial, sans-serif;
+        overflow-x: hidden;
+    }
+
+    /* Blurred background */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        background: orange url("https://picsum.photos/1200/800") no-repeat center center / cover;
+        filter: blur(10px);
+        z-index: -1;
     }
 
     h1 {
+        text-align: center;
         margin: 20px;
+        color: white;
+        text-shadow: 2px 2px 5px black;
     }
 
     /* Grid for arranging games */
@@ -25,6 +40,9 @@
         position: relative;
         width: 400px;
         height: 300px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
 
     /* Smaller preview size */
@@ -45,10 +63,15 @@
         background: transparent;
         border: none;
     }
+
+    .game-container:hover {
+        transform: scale(1.05);
+        transition: 0.2s;
+    }
 </style>
 </head>
 <body>
-    <h1>Games</h1>
+    <h1>My Scratch Games</h1>
 
     <div class="games-grid">
         <div class="game-container">
@@ -86,19 +109,8 @@
     </div>
 
     <script>
-        // Find all overlay buttons
-        document.querySelectorAll(".fullscreen-btn").forEach((btn, index) => {
+        // Make iframes go fullscreen when overlay is clicked
+        document.querySelectorAll(".fullscreen-btn").forEach(btn => {
             btn.addEventListener("click", () => {
-                let iframe = btn.previousElementSibling; // the iframe before the button
-                if (iframe.requestFullscreen) {
-                    iframe.requestFullscreen();
-                } else if (iframe.webkitRequestFullscreen) {
-                    iframe.webkitRequestFullscreen();
-                } else if (iframe.msRequestFullscreen) {
-                    iframe.msRequestFullscreen();
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+                let iframe = btn.previousElementSibling; // iframe before button
+                if (if
