@@ -19,14 +19,9 @@
 
     .game-container {
         position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        display: inline-block;
         margin: 20px auto;
         border: 2px solid black;
-        width: 1000px;
-        height: 800px;
-        background: orange; /* keeps same bg when fullscreen */
     }
 
     iframe {
@@ -47,14 +42,25 @@
         background: rgba(0,0,0,0); /* invisible */
     }
 
-    /* Center the container when fullscreen */
-    .fullscreen-game {
+    /* Fullscreen overlay container */
+    .fullscreen-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw;
+        height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100%;
-        width: 100%;
-        background: orange;
+        background: rgba(0,0,0,0.3); /* darken slightly */
+        backdrop-filter: blur(10px);  /* blur page behind */
+        z-index: 9999;
+    }
+
+    .fullscreen-overlay iframe {
+        width: 1000px;
+        height: 800px;
+        border: 2px solid black;
+        background: white;
     }
 </style>
 </head>
@@ -110,29 +116,27 @@
     </div>
 
     <script>
-        // Fullscreen click handler
         document.querySelectorAll(".overlay").forEach(overlay => {
             overlay.addEventListener("click", () => {
-                let container = overlay.parentElement;
+                // Clone the iframe so the game restarts clean in fullscreen
+                let iframe = overlay.previousElementSibling.cloneNode(true);
 
-                // Add fullscreen centering style
-                container.classList.add("fullscreen-game");
+                // Create overlay container
+                let fullOverlay = document.createElement("div");
+                fullOverlay.classList.add("fullscreen-overlay");
+                fullOverlay.appendChild(iframe);
+                document.body.appendChild(fullOverlay);
 
-                if (container.requestFullscreen) {
-                    container.requestFullscreen();
-                } else if (container.webkitRequestFullscreen) {
-                    container.webkitRequestFullscreen();
-                } else if (container.msRequestFullscreen) {
-                    container.msRequestFullscreen();
-                }
+                // Exit fullscreen on ESC or click outside
+                fullOverlay.addEventListener("click", (e) => {
+                    if (e.target === fullOverlay) {
+                        document.body.removeChild(fullOverlay);
+                    }
+                });
 
-                overlay.style.display = "none";
-
-                // When fullscreen exits, restore layout
-                document.addEventListener("fullscreenchange", () => {
-                    if (!document.fullscreenElement) {
-                        container.classList.remove("fullscreen-game");
-                        overlay.style.display = "block";
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape" && document.body.contains(fullOverlay)) {
+                        document.body.removeChild(fullOverlay);
                     }
                 });
             });
