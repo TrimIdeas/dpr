@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Interactive Mini Enigma</title>
+<style>
+  body { font-family: Arial; text-align: center; background: #111827; color: #fef3c7; }
+  h1 { margin-top: 20px; }
+  textarea, input { font-size: 16px; padding: 5px; margin: 5px; }
+  textarea { width: 80%; height: 100px; }
+  .rotor { display: inline-block; margin: 10px; cursor: grab; user-select: none; font-size: 20px; }
+  #output { margin-top: 20px; font-size: 20px; color: #34d399; }
+</style>
+</head>
+<body>
+
+<h1>Interactive Enigma Machine</h1>
+
+<div class="rotor" id="rotor1">A</div>
+<div class="rotor" id="rotor2">A</div>
+<div class="rotor" id="rotor3">A</div>
+
+<br>
+
+<textarea id="input" placeholder="Type your message here..."></textarea><br>
+<button onclick="encrypt()">🔐 Encrypt</button>
+<button onclick="decrypt()">🔓 Decrypt</button>
+
+<div id="output"></div>
+
+<script>
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// Rotor wirings
+const rotorWiring = [
+  "EKMFLGDQVZNTOWYHXUSPAIBRCJ",
+  "AJDKSIRUXBLHWTMCQGZNPYFVOE",
+  "BDFHJLCPRTXVZNYEIWGAKMUSQO"
+];
+
+// Reflector (like real Enigma)
+const reflector = "YRUHQSLDPXNGOKMIEBFZCWVJAT";
+
+// Get rotor elements
+let r1 = document.getElementById("rotor1");
+let r2 = document.getElementById("rotor2");
+let r3 = document.getElementById("rotor3");
+
+// Track rotor positions
+let r1pos = 0, r2pos = 0, r3pos = 0;
+
+// Rotate rotors by dragging
+function rotateRotor(rotorElement, rotorNum) {
+  rotorElement.addEventListener("click", () => {
+    if (rotorNum === 1) { r1pos = (r1pos + 1) % 26; r1.textContent = alphabet[r1pos]; }
+    if (rotorNum === 2) { r2pos = (r2pos + 1) % 26; r2.textContent = alphabet[r2pos]; }
+    if (rotorNum === 3) { r3pos = (r3pos + 1) % 26; r3.textContent = alphabet[r3pos]; }
+  });
+}
+rotateRotor(r1, 1);
+rotateRotor(r2, 2);
+rotateRotor(r3, 3);
+
+// Enigma machine function
+function enigma(text, mode="encrypt") {
+  let output = "";
+  let r1c = r1pos, r2c = r2pos, r3c = r3pos;
+
+  for (let i = 0; i < text.length; i++) {
+    let char = text[i].toUpperCase();
+    if (!alphabet.includes(char)) { output += char; continue; }
+
+    // Forward pass through rotors
+    if (mode === "encrypt") {
+      let index = (alphabet.indexOf(char) + r1c) % 26;
+      char = rotorWiring[0][index];
+      index = (alphabet.indexOf(char) + r2c) % 26;
+      char = rotorWiring[1][index];
+      index = (alphabet.indexOf(char) + r3c) % 26;
+      char = rotorWiring[2][index];
+
+      // Reflector
+      index = reflector.indexOf(char);
+      char = alphabet[index];
+
+      // Backward pass
+      index = rotorWiring[2].indexOf(char);
+      char = alphabet[(index - r3c + 26) % 26];
+      index = rotorWiring[1].indexOf(char);
+      char = alphabet[(index - r2c + 26) % 26];
+      index = rotorWiring[0].indexOf(char);
+      char = alphabet[(index - r1c + 26) % 26];
+    } else { // decrypt
+      // Decryption is symmetric, just use encrypt with same rotor positions
+      let index = (alphabet.indexOf(char) + r1c) % 26;
+      char = rotorWiring[0][index];
+      index = (alphabet.indexOf(char) + r2c) % 26;
+      char = rotorWiring[1][index];
+      index = (alphabet.indexOf(char) + r3c) % 26;
+      char = rotorWiring[2][index];
+
+      index = reflector.indexOf(char);
+      char = alphabet[index];
+
+      index = rotorWiring[2].indexOf(char);
+      char = alphabet[(index - r3c + 26) % 26];
+      index = rotorWiring[1].indexOf(char);
+      char = alphabet[(index - r2c + 26) % 26];
+      index = rotorWiring[0].indexOf(char);
+      char = alphabet[(index - r1c + 26) % 26];
+    }
+
+    output += char;
+
+    // Rotate rotors
+    r1c = (r1c + 1) % 26;
+    if (r1c === 0) r2c = (r2c + 1) % 26;
+    if (r1c === 0 && r2c === 0) r3c = (r3c + 1) % 26;
+  }
+
+  return output;
+}
+
+function encrypt() { document.getElementById("output").innerText = enigma(document.getElementById("input").value, "encrypt"); }
+function decrypt() { document.getElementById("output").innerText = enigma(document.getElementById("input").value, "decrypt"); }
+</script>
+
+<p>Click on the rotors to rotate them and set your secret key. Then type your message and encrypt it! Share rotor positions + encrypted message with a friend so they can decrypt it.</p>
+
+</body>
+</html>
