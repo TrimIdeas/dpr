@@ -95,6 +95,108 @@
             <iframe class="game-frame" src="https://scratch.mit.edu/projects/1169735607/embed" allowfullscreen></iframe>
             <button class="fullscreen-btn"></button>
         </div>
+   <!DOCTYPE html>
+<html>
+<head>
+  <title>Mini Enigma Messenger</title>
+  <style>
+    body { font-family: Arial; text-align: center; background: #111827; color: #fef3c7; }
+    textarea, input { font-size: 16px; padding: 5px; margin: 5px; }
+    textarea { width: 80%; height: 100px; }
+    .rotor { display: inline-block; margin: 10px; }
+    select { font-size: 16px; }
+    #output { margin-top: 20px; font-size: 20px; color: #34d399; }
+  </style>
+</head>
+<body>
+
+<h1>🕹️ Mini Enigma Messenger</h1>
+
+<div class="rotor">
+  Rotor 1: <input type="number" id="rotor1" min="0" max="25" value="0">
+</div>
+<div class="rotor">
+  Rotor 2: <input type="number" id="rotor2" min="0" max="25" value="0">
+</div>
+<div class="rotor">
+  Rotor 3: <input type="number" id="rotor3" min="0" max="25" value="0">
+</div>
+
+<br>
+
+<textarea id="input" placeholder="Type your message here..."></textarea><br>
+
+<button onclick="encrypt()">🔐 Encrypt</button>
+<button onclick="decrypt()">🔓 Decrypt</button>
+
+<div id="output"></div>
+
+<script>
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const rotorWiring = [
+  "EKMFLGDQVZNTOWYHXUSPAIBRCJ",
+  "AJDKSIRUXBLHWTMCQGZNPYFVOE",
+  "BDFHJLCPRTXVZNYEIWGAKMUSQO"
+];
+
+// Function for forward or backward pass
+function enigma(text, mode="encrypt") {
+  let output = "";
+  let r1pos = parseInt(document.getElementById("rotor1").value);
+  let r2pos = parseInt(document.getElementById("rotor2").value);
+  let r3pos = parseInt(document.getElementById("rotor3").value);
+
+  for (let i = 0; i < text.length; i++) {
+    let char = text[i].toUpperCase();
+    if (alphabet.includes(char)) {
+      let index = alphabet.indexOf(char);
+
+      if (mode === "encrypt") {
+        index = (index + r1pos) % 26;
+        char = rotorWiring[0][index];
+        index = (alphabet.indexOf(char) + r2pos) % 26;
+        char = rotorWiring[1][index];
+        index = (alphabet.indexOf(char) + r3pos) % 26;
+        char = rotorWiring[2][index];
+      } else { // decrypt
+        let idx = rotorWiring[2].indexOf(char);
+        idx = (idx - r3pos + 26) % 26;
+        char = alphabet[idx];
+        idx = rotorWiring[1].indexOf(char);
+        idx = (idx - r2pos + 26) % 26;
+        char = alphabet[idx];
+        idx = rotorWiring[0].indexOf(char);
+        idx = (idx - r1pos + 26) % 26;
+        char = alphabet[idx];
+      }
+
+      output += char;
+
+      // Rotate rotors
+      r1pos = (r1pos + 1) % 26;
+      if (r1pos === 0) r2pos = (r2pos + 1) % 26;
+      if (r1pos === 0 && r2pos === 0) r3pos = (r3pos + 1) % 26;
+    } else {
+      output += char;
+    }
+  }
+
+  return output;
+}
+
+function encrypt() {
+  let text = document.getElementById("input").value;
+  document.getElementById("output").innerText = enigma(text, "encrypt");
+}
+
+function decrypt() {
+  let text = document.getElementById("input").value;
+  document.getElementById("output").innerText = enigma(text, "decrypt");
+}
+</script>
+
+</body>
+</html>
     </div>
 
     <script>
